@@ -8,7 +8,9 @@ from sklearn.model_selection import train_test_split
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
 
 
-class RawDataProcessor:
+class RawDataProcessor():
+    def __init__(self, problem_config) -> None:
+        self.categorical_cols = ProblemConst.CATEGORICAL_COLS
     @staticmethod
     def build_category_features(data, categorical_cols=None):
         if categorical_cols is None:

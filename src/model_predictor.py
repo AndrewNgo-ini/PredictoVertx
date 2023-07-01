@@ -11,6 +11,7 @@ import yaml
 from fastapi import FastAPI, Request
 from pandas.util import hash_pandas_object
 from pydantic import BaseModel
+from typing import List 
 
 from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
@@ -29,7 +30,6 @@ class ModelPredictor:
     def __init__(self, config_file_path):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)
-        logging.info(f"model-config: {self.config}")
 
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
 
@@ -89,8 +89,8 @@ class ModelPredictor:
 
 
 class PredictorApi:
-    def __init__(self, predictor: ModelPredictor):
-        self.predictor = predictor
+    def __init__(self, predictors: List[ModelPredictor]):
+        self.predictors = predictors
         self.app = FastAPI()
 
         @self.app.get("/")
@@ -100,7 +100,14 @@ class PredictorApi:
         @self.app.post("/phase-1/prob-1/predict")
         async def predict(data: Data, request: Request):
             self._log_request(request)
-            response = self.predictor.predict(data)
+            response = self.predictors[0].predict(data)
+            self._log_response(response)
+            return response
+        
+        @self.app.post("/phase-1/prob-2/predict")
+        async def predict(data: Data, request: Request):
+            self._log_request(request)
+            response = self.predictors[1].predict(data)
             self._log_response(response)
             return response
 
@@ -112,23 +119,30 @@ class PredictorApi:
     def _log_response(response: dict):
         pass
 
-    def run(self, port):
+    def run(self, port: int):
         uvicorn.run(self.app, host="0.0.0.0", port=port)
 
-
 if __name__ == "__main__":
-    default_config_path = (
-        AppPath.MODEL_CONFIG_DIR
-        / ProblemConst.PHASE1
-        / ProblemConst.PROB1
-        / "model-1.yaml"
-    ).as_posix()
+    default_config_paths = [
+        (
+            AppPath.MODEL_CONFIG_DIR
+            / ProblemConst.PHASE1
+            / ProblemConst.PROB1
+            / "model-1.yaml"
+        ).as_posix(),
+        (
+            AppPath.MODEL_CONFIG_DIR
+            / ProblemConst.PHASE1
+            / ProblemConst.PROB2
+            / "model-1.yaml"
+        ).as_posix(),
+    ]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-path", type=str, default=default_config_path)
+    parser.add_argument("--config-paths", nargs="+", default=default_config_paths)
     parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
     args = parser.parse_args()
 
-    predictor = ModelPredictor(config_file_path=args.config_path)
-    api = PredictorApi(predictor)
+    predictors = [ModelPredictor(config_file_path=config_path) for config_path in args.config_paths]
+    api = PredictorApi(predictors)
     api.run(port=args.port)
