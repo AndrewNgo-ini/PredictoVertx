@@ -5,6 +5,7 @@ from utils import AppPath
 class ProblemConst:
     PHASE1 = "phase-1"
     PROB1 = "prob-1"
+    PROB2 = "prob-2"
 
 
 class ProblemConfig:
