@@ -17,7 +17,7 @@ from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
 
-PREDICTOR_API_PORT = 8000
+PREDICTOR_API_PORT = 5040
 
 
 class Data(BaseModel):
@@ -97,7 +97,7 @@ class PredictorApi:
         async def root():
             return {"message": "hello"}
 
-        @self.app.post("/phase-1/prob-1/predict")
+        @self.app.post("/phase-2/prob-1/predict")
         async def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictors[0].predict(data)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     default_config_paths = [
         (
             AppPath.MODEL_CONFIG_DIR
-            / ProblemConst.PHASE1
+            / ProblemConst.PHASE2
             / ProblemConst.PROB1
             / "model-1.yaml"
         ).as_posix(),

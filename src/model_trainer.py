@@ -15,7 +15,6 @@ from problem_config import (
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig
 
-#
 class ModelTrainer:
     EXPERIMENT_NAME = "xgb-1"
 
