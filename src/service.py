@@ -31,33 +31,28 @@ def save_model() -> bentoml.Model:
     model_uri = os.path.join(
         "models:/", config["model_name"], str(config["model_version"])
     )
-    model = mlflow.sklearn.load_model(model_uri)
+    #model = mlflow.sklearn.load_model(model_uri)
     
     # save model using bentoml
-    bentoml_model = bentoml.sklearn.save_model(
+    bentoml_model = bentoml.mlflow.import_model(
         config["model_name"],
-        model,
+        model_uri,
         # model signatures for runner inference
         signatures={
             "predict": {
                 "batchable": False,
             },
         },
-        labels={
-            "owner": "mlopsvn",
-        },
-        metadata={
-            "mlflow_model_name": config["model_name"],
-            "mlflow_model_version": config["model_version"],
-        }
     )
     return bentoml_model
 
 path = f"model_config/{ProblemConst.PHASE2}/{ProblemConst.PROB1}/"
 config, category_index, categorical_cols = load_nessecary_config(path)
 bentoml_model = save_model()
-bentoml_runner = bentoml.sklearn.get(bentoml_model.tag).to_runner()
+bentoml_runner = bentoml.mlflow.get(bentoml_model.tag).to_runner()
 svc = bentoml.Service(bentoml_model.tag.name, runners=[bentoml_runner])
+
+
 
 @svc.api(input=JSON(), 
         output=NumpyNdarray(),
@@ -71,7 +66,6 @@ def inference(data: dict) -> dict:
             category_index=category_index,
         )
         result = bentoml_runner.predict.run(feature_df)
-        print(type(result))
         print(result)
         return result
     except Exception as e:

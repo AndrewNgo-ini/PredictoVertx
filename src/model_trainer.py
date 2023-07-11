@@ -60,11 +60,12 @@ class ModelTrainer:
         mlflow.log_params(model.get_params())
         mlflow.log_metrics(metrics)
         signature = infer_signature(test_x, predictions)
-        mlflow.sklearn.log_model(
+        model_info = mlflow.sklearn.log_model(
             sk_model=model,
             artifact_path=AppConfig.MLFLOW_MODEL_PREFIX,
             signature=signature,
         )
+        logging.info(f"model_info: {model_info.model_uri}")
         mlflow.end_run()
         logging.info("finish train_model")
 
