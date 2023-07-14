@@ -1,4 +1,4 @@
-package com.client;
+package com.example.client;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
@@ -18,51 +18,69 @@ import com.bentoml.grpc.v1.NDArray;
 import com.bentoml.grpc.v1.Request;
 import com.bentoml.grpc.v1.RequestOrBuilder;
 import com.bentoml.grpc.v1.Response;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
+import io.vertx.core.json.JsonArray;
+
+// make this class a client for MainVerticle to use
 public class BentoServiceClient {
+    private static final Logger logger = Logger.getLogger(BentoServiceClient.class.getName());
+    private String target = "localhost:3000";
+    private ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+    private BentoServiceBlockingStub blockingStub = BentoServiceGrpc.newBlockingStub(channel);
+    private String apiName = "inference";
 
-  private static final Logger logger = Logger.getLogger(BentoServiceClient.class.getName());
-
-  static Iterable<Integer> convert(int[] array) {
-    return () -> Arrays.stream(array).iterator();
-  }
-
-  public static void main(String[] args) throws Exception {
-    String apiName = "classify";
-    int shape[] = { 1, 4 };
-    Iterable<Integer> shapeIterable = convert(shape);
-    Float array[] = { 3.5f, 2.4f, 7.8f, 5.1f };
-    Iterable<Float> arrayIterable = Arrays.asList(array);
-    // Access a service running on the local machine on port 50051
-    String target = "localhost:3000";
-
-    ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-    try {
-      BentoServiceBlockingStub blockingStub = BentoServiceGrpc.newBlockingStub(channel);
-
-      NDArray.Builder builder = NDArray.newBuilder().addAllShape(shapeIterable).addAllFloatValues(arrayIterable).setDtype(NDArray.DType.DTYPE_FLOAT);
-
-      Request req = Request.newBuilder().setApiName(apiName).setNdarray(builder).build();
-
-      try {
-        Response resp = blockingStub.call(req);
-        Response.ContentCase contentCase = resp.getContentCase();
-        if (contentCase != Response.ContentCase.NDARRAY) {
-          throw new Exception("Currently only support NDArray response");
-        }
-        NDArray output = resp.getNdarray();
-        logger.info("Response: " + resp.toString());
-      } catch (StatusRuntimeException e) {
-        logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-        return;
-      }
-    } finally {
-      // ManagedChannels use resources like threads and TCP connections. To prevent
-      // leaking these
-      // resources the channel should be shut down when it will no longer be used. If
-      // it may be used
-      // again leave it running.
-      channel.shutdownNow().awaitTermination(1, TimeUnit.SECONDS);
+    static Iterable<Integer> convert(int[] array) {
+        return () -> Arrays.stream(array).iterator();
     }
-  }
+    
+
+    public static List<Float> flattenJsonArray(JsonArray jsonArray) {
+        List<Float> flattenedList = new ArrayList<>();
+        for (Object outerElement : jsonArray) {
+            if (outerElement instanceof JsonArray) {
+                for (Object innerElement : (JsonArray) outerElement) {
+                    flattenedList.add(((Number) innerElement).floatValue());
+                }
+            } else {
+                flattenedList.add(((Number) outerElement).floatValue());
+            }
+        }
+        return flattenedList;
+    }
+
+    public NDArray getPrediction(JsonArray rows) {
+        // Get shape of the array
+        List<Integer> shapeIterable = new ArrayList<Integer>();
+        shapeIterable.add(rows.size());
+        shapeIterable.add(rows.getJsonArray(0).size());
+
+        List<Float> arrayIterable = flattenJsonArray(rows);
+
+        // Access a service running on the local machine on port 50051
+        NDArray.Builder builder = NDArray.newBuilder()
+                .addAllShape(shapeIterable)
+                .addAllFloatValues(arrayIterable)
+                .setDtype(NDArray.DType.DTYPE_FLOAT);
+
+        Request req = Request.newBuilder().setApiName(apiName).setNdarray(builder).build();
+
+        try {
+            Response resp = blockingStub.call(req);
+            Response.ContentCase contentCase = resp.getContentCase();
+            if (contentCase != Response.ContentCase.NDARRAY) {
+                throw new Exception("Currently only support NDArray response");
+            }
+            NDArray output = resp.getNdarray();
+            logger.info("Response: " + resp.toString());
+            return output;
+        } catch (StatusRuntimeException e) {
+            logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+            return null;
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "RPC failed: {0}", e.getMessage());
+            return null;
+        }
+    }
 }
