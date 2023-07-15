@@ -11,24 +11,26 @@ import io.vertx.ext.mongo.*;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.core.json.JsonArray;
 import java.util.List;
-
+import com.example.client.BentoServiceClient;
+import com.bentoml.grpc.v1.NDArray;
 
 public class MainVerticle extends AbstractVerticle {
 
   private MongoClient mongoClient;
   private WebClient webClient;
-  
+  private BentoServiceClient bentoServiceClient;
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
     
-    JsonObject config = new JsonObject()
-      .put("connection_string", "mongodb://root:example@localhost:27017/")
-      .put("db_name", "request");
-    mongoClient = MongoClient.createShared(vertx, config);
+    // JsonObject config = new JsonObject()
+    //   .put("connection_string", "mongodb://root:example@localhost:27017/")
+    //   .put("db_name", "request");
+    // mongoClient = MongoClient.createShared(vertx, config);
     webClient = WebClient.create(vertx);
+    bentoServiceClient = new BentoServiceClient();
     
     router.post("/phase-2/prob-1/predict")
       .handler(this::handleModel1);  
@@ -42,7 +44,7 @@ public class MainVerticle extends AbstractVerticle {
       .listen(5040, http -> {
       if (http.succeeded()) {
         startPromise.complete();
-        System.out.println("HTTP server started on port 8888");
+        System.out.println("HTTP server started on port 5040");
       } else {
         startPromise.fail(http.cause());
       }
@@ -68,7 +70,13 @@ public class MainVerticle extends AbstractVerticle {
     return promise.future();
   }
 
-  
+  private Future<List<Long>> callModel1Grpc(JsonArray rows) {
+    Promise<List<Long>> promise = Promise.promise();
+    NDArray result = bentoServiceClient.getPrediction(rows);
+    promise.complete(result.getInt64ValuesList());
+    return promise.future();
+  }
+
 
   private void saveData(JsonObject data) {
     mongoClient.save("sample", data).onComplete(res -> {
@@ -87,12 +95,22 @@ public class MainVerticle extends AbstractVerticle {
     vertx.executeBlocking(promise -> {
         JsonArray rows = input.getJsonArray("rows");
         JsonArray columns = input.getJsonArray("columns");
-        callModel1(rows, columns)
+        // Iterate over each element in rows
+        for (int i = 0; i < rows.size(); i++) {
+          JsonArray element = rows.getJsonArray(i);
+          
+          // Iterate over positions 1, 2, and 3 in the element
+          for (int j = 1; j <= 3; j++) {
+              element.set(j, 1);
+          }
+        }
+        callModel1Grpc(rows)
             .onSuccess(result -> promise.complete(result))
             .onFailure(error -> promise.fail(error));
     }).onComplete(res -> {
         if (res.succeeded()) {
             List<Long> result = (List<Long>) res.result();
+            System.out.println("Received response from model 1: " + result);
             routingContext.response()
                 .putHeader("content-type", "application/json")
                 .end(new JsonObject()

@@ -16,7 +16,7 @@ def send_request(path: str):
         "rows": df.values.tolist(),
         "columns": df.columns.values.tolist(),
     }
-    data = requests.post('http://localhost:5040/phase-2/prob-1/predict', json=json_data)
+    data = requests.post('http://34.124.203.24:5040/phase-2/prob-1/predict', json=json_data)
     print(data.text)
 
 

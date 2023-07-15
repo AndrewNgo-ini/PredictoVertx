@@ -3,21 +3,28 @@ networks:
   my_network:
     driver: bridge
 services:
-  app:
-    image: ${IMAGE_NAME}:${IMAGE_TAG}
+  backend:
+    image: hieungo1898/back-end:latest
     ports:
       - 5040:5040
     networks:
       - my_network
-  python_service:
-    image: python_service:${IMAGE_TAG}
+  predictor:
+    image: hieungo1898/bento-service:latest
+    command: serve-grpc
     ports:
       - 3000:3000
-    environment:
-      MLFLOW_TRACKING_URI: http://host.docker.internal:5001
     networks:
       - my_network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    entrypoint: /bin/sh -c "ls && cd src && bentoml serve service.py:svc"
+  # python_service:
+  #   image: python_service:${IMAGE_TAG}
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     MLFLOW_TRACKING_URI: http://host.docker.internal:5001
+  #   networks:
+  #     - my_network
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc service2.py:svc"
 
