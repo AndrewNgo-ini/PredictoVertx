@@ -26,8 +26,9 @@ import io.vertx.core.json.JsonArray;
 // make this class a client for MainVerticle to use
 public class BentoServiceClient {
     private static final Logger logger = Logger.getLogger(BentoServiceClient.class.getName());
-    private String target = "localhost:3000";
-    private ManagedChannel channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+    private String host = "predictor";
+    private Integer port = 3000;
+    private ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
     private BentoServiceBlockingStub blockingStub = BentoServiceGrpc.newBlockingStub(channel);
     private String apiName = "inference";
 
