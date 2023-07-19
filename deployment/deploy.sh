@@ -40,7 +40,7 @@ run_predictor() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 run_service_predictor() {
-    docker build -f deployment/python_service/Dockerfile -t python_service:$IMAGE_TAG .
+    #docker build -f deployment/python_service/Dockerfile -t python_service:$IMAGE_TAG .
     docker build -f deployment/service_predictor/Dockerfile -t service_predictor:$IMAGE_TAG .
     IMAGE_NAME=service_predictor IMAGE_TAG=$IMAGE_TAG \
         docker-compose -f deployment/service_predictor/docker-compose.yml up -d

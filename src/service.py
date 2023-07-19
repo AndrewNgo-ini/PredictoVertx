@@ -5,6 +5,7 @@ import yaml
 import pandas as pd
 import pickle
 import json
+import numpy as np
 
 from bentoml.io import JSON, NumpyNdarray
 from raw_data_processor import RawDataProcessor
@@ -53,7 +54,6 @@ bentoml_runner = bentoml.mlflow.get(bentoml_model.tag).to_runner()
 svc = bentoml.Service(bentoml_model.tag.name, runners=[bentoml_runner])
 
 
-
 @svc.api(input=JSON(), 
         output=NumpyNdarray(),
         route="/phase-2/prob-1/predict")
@@ -70,6 +70,5 @@ def inference(data: dict) -> dict:
         return result
     except Exception as e:
         print(e)
-
 
     
