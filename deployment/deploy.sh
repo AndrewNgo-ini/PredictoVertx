@@ -36,11 +36,38 @@ run_predictor() {
         docker-compose -f deployment/model_predictor/docker-compose.yml up -d
 }
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 run_service_predictor() {
     docker build -f deployment/python_service/Dockerfile -t python_service:$IMAGE_TAG .
     docker build -f deployment/service_predictor/Dockerfile -t service_predictor:$IMAGE_TAG .
     IMAGE_NAME=service_predictor IMAGE_TAG=$IMAGE_TAG \
         docker-compose -f deployment/service_predictor/docker-compose.yml up -d
+=======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+build_service_predictor() {
+    # Bento service
+    cd src
+    bentoml build 
+    bentoml containerize cancer_clf:latest --opt platform=linux/amd64
+    docker tag cancer_clf:latest hieungo1898/bento-service:latest #auto tag
+    docker push hieungo1898/bento-service:latest
+    
+    # Back end service
+    docker build  --platform linux/amd64 -f deployment/service_predictor/Dockerfile -t service_predictor .
+    docker tag service_predictor:latest hieungo1898/back-end:latest
+    docker push hieungo1898/back-end:latest
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 }
 
 shift
@@ -49,11 +76,16 @@ case $cmd in
 run_predictor)
     run_predictor "$@"
     ;;
-run_service_predictor)
-    run_service_predictor "$@"
+build_service_predictor)
+    build_service_predictor "$@"
     ;;
 *)
     echo -n "Unknown command: $cmd"
     exit 1
     ;;
 esac
+
+
+#BENTOML_CONFIG=bentoml_configuration.yml bentoml serve-grpc service2:svc --enable-reflection --debug --verbose
+#mvn clean package -Dargd1=localhost
+#mvn exec:java -Dexec.args="localhost"

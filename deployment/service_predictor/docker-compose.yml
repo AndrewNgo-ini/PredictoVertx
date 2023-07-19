@@ -3,8 +3,8 @@ networks:
   my_network:
     driver: bridge
 services:
-  app:
-    image: ${IMAGE_NAME}:${IMAGE_TAG}
+  backend:
+    image: hieungo1898/back-end:latest #service_predictor:latest #hieungo1898/back-end:latest
     ports:
       - 5040:5040
     networks:

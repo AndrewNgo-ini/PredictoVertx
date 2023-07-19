@@ -1,0 +1,35 @@
+api_server:
+  grpc:
+    host: 0.0.0.0
+    port: 3000
+    max_concurrent_streams: ~
+    maximum_concurrent_rpcs: ~
+    max_message_length: -1
+    # reflection:
+    #   enabled: true
+  # logging:
+  #   access:
+  #     enabled: true
+  #     request_content_length: true
+  #     # whether to log the content type of the request
+  #     request_content_type: true
+  #     # whether to log the content length of the response
+  #     response_content_length: true
+  #     # whether to log the content type of the response
+  #     response_content_type: true
+runners:
+  catboost_cancer_clf:
+    batching:
+        enabled: true
+        max_batch_size: 10000
+        max_latency_ms: 350
+  # logging:
+  #   access:
+  #     enabled: true
+# tracing:
+#   exporter_type: jaeger
+#   sample_rate: 1.0
+#   jaeger:
+#     address: localhost
+#     port: 6831
+#   excluded_urls: readyz,livez,healthz,static_content,docs,metrics

@@ -23,8 +23,10 @@ WORKDIR /app
 #COPY --from=build /app/target/gateway-1.0.0-SNAPSHOT-fat.jar ./gateway-1.0.0-SNAPSHOT-fat.jar
 COPY ./backend/target/gateway-1.0.0-SNAPSHOT-fat.jar ./gateway-1.0.0-SNAPSHOT-fat.jar
 
+COPY ./backend/conf_prod.json ./conf_prod.json
+
 # Expose the port if necessary
 EXPOSE 5040
 
 # Set the entrypoint command to run the application
-ENTRYPOINT ["java", "-jar", "gateway-1.0.0-SNAPSHOT-fat.jar"]
+ENTRYPOINT ["java", "-jar", "gateway-1.0.0-SNAPSHOT-fat.jar", "--conf", "conf_prod.json"]
