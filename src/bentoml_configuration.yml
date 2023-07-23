@@ -2,9 +2,8 @@ api_server:
   grpc:
     host: 0.0.0.0
     port: 3000
-    max_concurrent_streams: ~
-    maximum_concurrent_rpcs: ~
-    max_message_length: -1
+  metrics:
+    enabled: false
     # reflection:
     #   enabled: true
   # logging:
@@ -17,12 +16,12 @@ api_server:
   #     response_content_length: true
   #     # whether to log the content type of the response
   #     response_content_type: true
-runners:
-  catboost_cancer_clf:
-    batching:
-        enabled: true
-        max_batch_size: 10000
-        max_latency_ms: 350
+# runners:
+#   catboost_cancer_clf:
+#     batching:
+#         enabled: true
+#         max_batch_size: 10000
+#         max_latency_ms: 350
   # logging:
   #   access:
   #     enabled: true

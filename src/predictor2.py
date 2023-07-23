@@ -9,8 +9,8 @@ svc = bentoml.Service("cancer_clf", runners=[runner])
 
 @svc.api(input=NumpyNdarray(), 
         output=NumpyNdarray(),
-        route="/phase-2/prob-1/predict")
-def inference(data: np.ndarray) -> dict:
+        route="/phase-2/prob-2/predict")
+def inference2(data: np.ndarray) -> dict:
     try:
         result = runner.predict.run(data)
         print(result)

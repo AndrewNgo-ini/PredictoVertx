@@ -6,11 +6,11 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from mlflow.models.signature import infer_signature
 import bentoml
-from sklearn import preprocessing
-le = preprocessing.LabelEncoder()
+#from sklearn import preprocessing
+#le = preprocessing.LabelEncoder()
 
 def get_dataset(path):
-    df = pd.read_parquet(path)
+    df = pd.read_parquet(path + "raw_train.parquet")
     train, dev = train_test_split(df, test_size=0.2, random_state=42)
     train_x = train.drop(["label"], axis=1)
     train_y = train[["label"]]
@@ -18,24 +18,32 @@ def get_dataset(path):
     test_y = dev[["label"]]
     return train_x, train_y, test_x, test_y
 
+def train(path):
+    # load train data
+    train_x, train_y, test_x, test_y = get_dataset(path)
+    #cat_features = ["feature_2", "feature_3", "feature_4"]
+    train_x = train_x.to_numpy()
+    train_y = train_y.to_numpy()
+    logging.info(f"loaded {len(train_x)} samples")
 
-# load train data
-train_x, train_y, test_x, test_y = get_dataset("/Users/ngohieu/base_compe/data/raw_data/phase-2/prob-1/raw_train.parquet")
-#cat_features = ["feature_2", "feature_3", "feature_4"]
-train_x = train_x.to_numpy()
-train_y = train_y.to_numpy()
-logging.info(f"loaded {len(train_x)} samples")
+    model = catboost.CatBoostClassifier(iterations=5,learning_rate=0.1,cat_features=[1,2,3])
+    model.fit(train_x, train_y)
 
-model = catboost.CatBoostClassifier(iterations=5,learning_rate=0.1,cat_features=[1,2,3])
-model.fit(train_x, train_y)
-
-# evaluate
-predictions = model.predict(test_x)
-auc_score = roc_auc_score(test_y, predictions)
-metrics = {"test_auc": auc_score}
-logging.info(f"metrics: {metrics}")
+    # evaluate
+    predictions = model.predict(test_x)
+    auc_score = roc_auc_score(test_y, predictions)
+    metrics = {"test_auc": auc_score}
+    logging.info(f"metrics: {metrics}")
 
 
-signature = infer_signature(test_x, predictions)
-bento_model = bentoml.catboost.save_model("catboost_cancer_clf", model)
-logging.info("finish train_model")
+    signature = infer_signature(test_x, predictions)
+    bento_model = bentoml.catboost.save_model("model", model)
+    logging.info("finish train_model")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) >= 2:
+        bento_model.save(sys.argv[1])
+    else:
+        print("missing path")
+        exit(1)

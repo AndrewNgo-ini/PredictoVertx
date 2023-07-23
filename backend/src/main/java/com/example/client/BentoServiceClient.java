@@ -28,7 +28,6 @@ public class BentoServiceClient {
     private Integer port;
     private ManagedChannel channel;
     private BentoServiceFutureStub stub;
-    private String apiName = "inference";
     private ExecutorService executors = Executors.newCachedThreadPool();
 
     static Iterable<Integer> convert(int[] array) {
@@ -46,29 +45,8 @@ public class BentoServiceClient {
         this.channel = ManagedChannelBuilder.forAddress(this.host, this.port).usePlaintext().build();
         this.stub = BentoServiceGrpc.newFutureStub(channel);
     }
-
-    public static List<Float> flattenJsonArray(JsonArray jsonArray) {
-        List<Float> flattenedList = new ArrayList<>();
-        for (Object outerElement : jsonArray) {
-            if (outerElement instanceof JsonArray) {
-                for (Object innerElement : (JsonArray) outerElement) {
-                    flattenedList.add(((Number) innerElement).floatValue());
-                }
-            } else {
-                flattenedList.add(((Number) outerElement).floatValue());
-            }
-        }
-        return flattenedList;
-    }
-
-    public ListenableFuture<NDArray> getPrediction(JsonArray rows) {
-        // Get shape of the array
-        List<Integer> shapeIterable = new ArrayList<Integer>();
-        shapeIterable.add(rows.size());
-        shapeIterable.add(rows.getJsonArray(0).size());
-
-        List<Float> arrayIterable = flattenJsonArray(rows);
-
+    
+    public ListenableFuture<NDArray> getPrediction(String apiName, List<Integer> shapeIterable, List<Float> arrayIterable) {
         // Access a service running on the local machine on port 50051
         NDArray.Builder builder = NDArray.newBuilder()
                 .addAllShape(shapeIterable)
@@ -76,7 +54,7 @@ public class BentoServiceClient {
                 .setDtype(NDArray.DType.DTYPE_FLOAT);
 
         Request req = Request.newBuilder().setApiName(apiName).setNdarray(builder).build();
-
+        
         return Futures.transform(
                 stub.call(req),
                 response -> response.getNdarray(),

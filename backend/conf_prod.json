@@ -1,3 +1,4 @@
 {
-    "host": "predictor"
+    "host1": "predictor",
+    "host2": "predictor2"
 }

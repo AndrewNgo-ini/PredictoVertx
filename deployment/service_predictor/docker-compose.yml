@@ -11,11 +11,28 @@ services:
       - my_network
   predictor:
     image: hieungo1898/bento-service:latest
+    # volumes:
+    #   - ./src/bentoml_configuration.yml:/src/configuration.yml
+    # environment:
+    #   - BENTOML_CONFIG=./src/configuration.yml
     command: serve-grpc
     ports:
       - 3000:3000
     networks:
       - my_network
+    #entrypoint: /bin/sh -c "ls && cd src && BENTOML_CONFIG=bentoml_configuration.yml bentoml serve-grpc predictor1:svc"
+  predictor2:
+    image: hieungo1898/bento-service2:latest
+    # volumes:
+    #   - ./src/bento_config/bentoml_configuration.yml:/home/bentoml/bento/bentoml_configuration
+    environment:
+      - BENTOML_CONFIG=./src/bentoml_configuration2.yml
+    command: serve-grpc
+    ports:
+      - 3100:3100
+    networks:
+      - my_network
+    #entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc --port 3100 predictor2:svc"
   # python_service:
   #   image: python_service:${IMAGE_TAG}
   #   ports:
