@@ -12,5 +12,5 @@ python:
     - pandas==2.0.1
     - lightgbm==4.0.0
     - "bentoml[grpc]"
-    - sklearn
-    - mlflow
+    - scikit-learn==1.2.2
+    - mlflow==2.3.2

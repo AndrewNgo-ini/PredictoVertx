@@ -27,7 +27,7 @@ columns_order = [
 
 runner = bentoml.mlflow.get("model2:latest").to_runner()
 
-svc = bentoml.Service("model2", runners=[runner])
+svc = bentoml.Service("service2", runners=[runner])
 
 
 @svc.api(input=JSON(), 
