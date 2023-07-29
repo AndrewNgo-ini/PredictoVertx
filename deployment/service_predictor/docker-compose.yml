@@ -10,7 +10,7 @@ services:
     networks:
       - my_network
   predictor:
-    image: model:fbox76rn3cukwexp #hieungo1898/bento-serviceall:latest
+    image: hieungo1898/bento-serviceall:latest
     command: serve
     ports:
       - 3000:3000
