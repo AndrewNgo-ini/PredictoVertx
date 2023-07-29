@@ -16,6 +16,14 @@ def load_meterials(path):
 
 category_index, numeric_encoder, standard_scaler, numeric_columns, category_columns = load_meterials("model_config/phase-2/prob-1/")
 category_index2, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2 = load_meterials("model_config/phase-2/prob-2/")
+columns_order = [
+    "feature1", "feature2", "feature3", "feature4", "feature5", "feature6", "feature7", "feature8", "feature9", "feature10", 
+    "feature11", "feature12", "feature13", "feature14", "feature15", "feature16", "feature17", "feature18", "feature19", "feature20", 
+    "feature21", "feature22", "feature23", "feature24", "feature25", "feature26", "feature27", "feature28", "feature29", "feature30", 
+    "feature31", "feature32", "feature33", "feature34", "feature35", "feature36", "feature37", "feature38", "feature39", "feature40", 
+    "feature41"
+  ]
+
 
 runner = bentoml.mlflow.get("model1:latest").to_runner()
 runner2 = bentoml.mlflow.get("model2:latest").to_runner()
@@ -29,7 +37,8 @@ svc = bentoml.Service("model", runners=[runner, runner2])
 def inference(data: dict):
     try:
         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
-        processed_data = preprocess(raw_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
+        order_df = raw_df[columns_order]
+        processed_data = preprocess(order_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
         result = runner.run(processed_data)
         print(result)
         return result
@@ -43,7 +52,8 @@ def inference(data: dict):
 def inference2(data: dict):
     try:
         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
-        processed_data = preprocess(raw_df, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2, category_index2)
+        order_df = raw_df[columns_order]
+        processed_data = preprocess(order_df, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2, category_index2)
         result = runner2.run(processed_data)
         return result
     except Exception as e:

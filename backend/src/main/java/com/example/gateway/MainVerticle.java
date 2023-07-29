@@ -141,9 +141,22 @@ public class MainVerticle extends AbstractVerticle {
 
   // NOT USING WORKER VERTICLE
 
-  private SettableFuture<List<Long>> model1Communicator(JsonArray rows, JsonArray columns, String endpoint) {
+  // private JsonArray reOrder(JsonArray rows, JsonArray columns) {
+  //   // re-order the rows and columns from ["feaure 3", "feature 2"] to ["feature 2", "feature 3"]
+  //   JsonArray newRows = new JsonArray();
+  //   for (int i = 0; i < rows.size(); i++) {
+  //     JsonArray row = rows.getJsonArray(i);
+  //     JsonArray newRow = new JsonArray();
+  //     for (int j = 0; j < columns.size(); j++) {
+  //       newRow.add(row.getValue(columns.getInteger(j)));
+  //     }
+  //     newRows.add(newRow);
+  //   }
+  // }
+
+  private SettableFuture<List<Long>> modelCommunicator(JsonArray rows, JsonArray columns, String host, Integer port, String endpoint) {
     SettableFuture<List<Long>> future = SettableFuture.create();
-    webClient.post(3000, this.host1, endpoint)
+    webClient.post(port, host, endpoint)
         .sendJsonObject(new JsonObject()
             .put("rows", rows)
             .put("columns", columns))
@@ -166,7 +179,7 @@ public class MainVerticle extends AbstractVerticle {
     JsonArray columns = input.getJsonArray("columns");
     Futures.addCallback(
                 Futures.transform(
-                        model1Communicator(rows, columns, "/phase-2/prob-1/predict"),
+                        modelCommunicator(rows, columns, this.host1, 3000, "/phase-2/prob-1/predict"),
                         predictions -> {
                             JsonObject response = new JsonObject()
                                     .put("id", input.getString("id", ""))
@@ -199,7 +212,7 @@ public class MainVerticle extends AbstractVerticle {
     JsonArray columns = input.getJsonArray("columns");
     Futures.addCallback(
                 Futures.transform(
-                        model1Communicator(rows, columns, "/phase-2/prob-2/predict"),
+                        modelCommunicator(rows, columns, this.host2, 3100, "/phase-2/prob-2/predict"),
                         predictions -> {
                             JsonObject response = new JsonObject()
                                     .put("id", input.getString("id", ""))

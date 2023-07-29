@@ -101,7 +101,7 @@ def train(train_path, config_path):
             print("test2", model.predict_proba(X_test))
             model_uri = mlflow.get_artifact_uri("model")
             bento_model = bentoml.mlflow.import_model(
-                "model1", model_uri, signatures={"predict": {"batchable": True}}
+                "model1", model_uri
             )
             print("Model imported to BentoML: %s" % bento_model)
         elif model_config["ml_type"] == "multiclass":
@@ -115,7 +115,7 @@ def train(train_path, config_path):
             score = accuracy_score(Y_test, model.predict(X_test))
             model_uri = mlflow.get_artifact_uri("model")
             bento_model = bentoml.mlflow.import_model(
-                "model2", model_uri, signatures={"predict": {"batchable": True}}
+                "model2", model_uri
             )
             print("Model imported to BentoML: %s" % bento_model)
     print(score)

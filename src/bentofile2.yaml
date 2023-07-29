@@ -5,8 +5,12 @@ labels:
 include:
 - "*.py"  # A pattern for matching which files to include in the bento
 - "bentoml_configuration2.yml"
+- "model_config/*"
 python:
     packages:  # Additional pip packages required by the service
     - numpy==1.24.3
-    - catboost==1.2
+    - pandas==2.0.1
+    - lightgbm==4.0.0
     - "bentoml[grpc]"
+    - sklearn
+    - mlflow
