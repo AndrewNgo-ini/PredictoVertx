@@ -11,20 +11,20 @@ services:
       - my_network
   predictor:
     image: hieungo1898/bento-service:latest
-    command: serve
+    #command: serve
     ports:
       - 3000:3000
     networks:
       - my_network
-    #entrypoint: /bin/sh -c "ls && cd src && BENTOML_CONFIG=bentoml_configuration.yml bentoml serve-grpc predictor1:svc"
+    entrypoint: /bin/sh -c "ls && cd src && BENTOML_CONFIG=bentoml_configuration.yml bentoml serve-grpc predictor1:svc"
   predictor2:
     image: hieungo1898/bento-service2:latest
-    command: serve
+    #command: serve
     ports:
       - 3100:3100
     networks:
       - my_network
-    #entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc --port 3100 predictor2:svc"
+    entrypoint: /bin/sh -c "ls && cd src && BENTOML_CONFIG=bentoml_configuration2.yml bentoml serve-grpc predictor2:svc"
   
   # predictor:
   #   image: hieungo1898/bento-serviceall:latest
