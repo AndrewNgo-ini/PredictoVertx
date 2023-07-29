@@ -14,3 +14,4 @@ python-dotenv
 bentoml[grpc]==1.0.22
 catboost==1.2
 evidently
+lightgbm==4.0.0
