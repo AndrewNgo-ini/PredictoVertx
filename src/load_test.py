@@ -4,12 +4,24 @@ import pandas as pd
 
 # Define the number of rows and features
 num_rows = 2000
-num_numeric_features = 40
-num_categorical_features = 10
+numeric_features = [
+    "feature1", "feature5", "feature6", "feature7", "feature8", "feature9", "feature10", 
+    "feature11", "feature12", "feature13", "feature14", "feature15", "feature16", "feature17", "feature18", "feature19", "feature20", 
+    "feature21", "feature22", "feature23", "feature24", "feature25", "feature26", "feature27", "feature28", "feature29", "feature30", 
+    "feature31", "feature32", "feature33", "feature34", "feature35", "feature36", "feature37", "feature38", "feature39", "feature40", 
+    "feature41"
+]
+categorical_features = [
+    "feature2", "feature3", "feature4"
+]
 
-# Generate random numeric and categorical feature names
-numeric_features = [f"feature{i}" for i in range(1, num_numeric_features + 1)]
-categorical_features = [f"feature{i}" for i in range(num_numeric_features + 1, num_numeric_features + num_categorical_features + 1)]
+# Generate random numeric and categorical feature (feature2, feature3, feature4) the rest are all numeric
+num_numeric_features = len(numeric_features)
+num_categorical_features = len(categorical_features)
+feature2 = "tcp"
+feature3 = "http"
+feature4 = "FIN"
+
 
 def generate_random_data():
     # Generate a random id for each request
@@ -25,8 +37,13 @@ def generate_random_data():
             row_data.append(random.random())
 
         # Generate random categorical values (replace ["a", "b", "c"] with your actual categories)
-        for _ in range(num_categorical_features):
-            row_data.append(random.choice(["a", "b", "c"]))
+        for i in range(num_categorical_features):
+            if i == 0:
+                row_data.append(feature2)
+            elif i == 1:
+                row_data.append(feature3)
+            elif i == 2:
+                row_data.append(feature4) 
 
         rows_data.append(row_data)
 

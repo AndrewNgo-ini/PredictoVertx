@@ -6,6 +6,10 @@ api_server:
   #   port: 3000
   metrics:
     enabled: false
+runners:
+  batching:
+    enabled: false
+
     # reflection:
     #   enabled: true
   # logging:
