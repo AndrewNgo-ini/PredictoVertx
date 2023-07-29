@@ -1,9 +1,8 @@
 import bentoml
-import numpy as np
 import pandas as pd
 import json
 
-from bentoml.io import NumpyNdarray, PandasDataFrame, JSON
+from bentoml.io import NumpyNdarray, JSON
 from model_lightgbm import load_preprocessor, preprocess
 
 def load_meterials(path):

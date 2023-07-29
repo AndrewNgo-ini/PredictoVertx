@@ -1,20 +1,23 @@
 version: '3'
-# networks:
-#   my_network:
-#     driver: bridge
+networks:
+  my_network:
+    driver: bridge
 services:
   backend:
     image: hieungo1898/back-end:latest #service_predictor:latest #hieungo1898/back-end:latest
     ports:
       - 5040:5040
-    # networks:
-    #   - my_network
+    networks:
+      - my_network
+  predictor:
+    image: model:fbox76rn3cukwexp #hieungo1898/bento-serviceall:latest
+    command: serve
+    ports:
+      - 3000:3000
+    networks:
+      - my_network
   # predictor:
   #   image: hieungo1898/bento-service:latest
-  #   # volumes:
-  #   #   - ./src/bentoml_configuration.yml:/src/configuration.yml
-  #   # environment:
-  #   #   - BENTOML_CONFIG=./src/configuration.yml
   #   command: serve-grpc
   #   ports:
   #     - 3000:3000
@@ -23,25 +26,21 @@ services:
   #   #entrypoint: /bin/sh -c "ls && cd src && BENTOML_CONFIG=bentoml_configuration.yml bentoml serve-grpc predictor1:svc"
   # predictor2:
   #   image: hieungo1898/bento-service2:latest
-  #   # volumes:
-  #   #   - ./src/bento_config/bentoml_configuration.yml:/home/bentoml/bento/bentoml_configuration
-  #   environment:
-  #     - BENTOML_CONFIG=./src/bentoml_configuration2.yml
   #   command: serve-grpc
   #   ports:
   #     - 3100:3100
   #   networks:
   #     - my_network
   #   #entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc --port 3100 predictor2:svc"
-  # # python_service:
-  # #   image: python_service:${IMAGE_TAG}
-  # #   ports:
-  # #     - 3000:3000
-  # #   environment:
-  # #     MLFLOW_TRACKING_URI: http://host.docker.internal:5001
-  # #   networks:
-  # #     - my_network
-  # #   extra_hosts:
-  # #     - "host.docker.internal:host-gateway"
-  # #   entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc service2.py:svc"
+  # python_service:
+  #   image: python_service:${IMAGE_TAG}
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     MLFLOW_TRACKING_URI: http://host.docker.internal:5001
+  #   networks:
+  #     - my_network
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   entrypoint: /bin/sh -c "ls && cd src && bentoml serve-grpc service2.py:svc"
 
