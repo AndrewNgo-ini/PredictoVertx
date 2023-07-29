@@ -15,8 +15,8 @@ def load_meterials(path):
     return category_index, numeric_encoder, standard_scaler, numeric_columns, category_columns
 
 
-category_index, numeric_encoder, standard_scaler, numeric_columns, category_columns = load_meterials("/Users/ngohieu/base_compe/src/model_config/phase-2/prob-1/")
-category_index2, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2 = load_meterials("/Users/ngohieu/base_compe/src/model_config/phase-2/prob-2/")
+category_index, numeric_encoder, standard_scaler, numeric_columns, category_columns = load_meterials("model_config/phase-2/prob-1/")
+category_index2, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2 = load_meterials("model_config/phase-2/prob-2/")
 
 runner = bentoml.mlflow.get("model1:latest").to_runner()
 runner2 = bentoml.mlflow.get("model2:latest").to_runner()
