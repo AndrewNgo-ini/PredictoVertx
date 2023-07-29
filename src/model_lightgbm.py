@@ -123,12 +123,12 @@ def train(train_path, config_path):
 
 
 if __name__ == "__main__":
-    train_path = "/Users/ngohieu/base_compe/data/raw_data/phase-2/prob-1/raw_train.parquet"
-    config_path = "/Users/ngohieu/base_compe/src/model_config/phase-2/prob-1/"
+    train_path = "../data/raw_data/phase-2/prob-1/raw_train.parquet"
+    config_path = "../src/model_config/phase-2/prob-1/"
     train(train_path, config_path)
 
-    train_path = "/Users/ngohieu/base_compe/data/raw_data/phase-2/prob-2/raw_train.parquet"
-    config_path = "/Users/ngohieu/base_compe/src/model_config/phase-2/prob-2/"
+    train_path = "../data/raw_data/phase-2/prob-2/raw_train.parquet"
+    config_path = "../src/model_config/phase-2/prob-2/"
     train(train_path, config_path)
 
     # df = pd.read_parquet(train_path)
