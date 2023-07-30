@@ -1,9 +1,9 @@
 api_server:
-  # http:
-  #   port: 3000
-  grpc:
-    host: 0.0.0.0
+  http:
     port: 3000
+  # grpc:
+  #   host: 0.0.0.0
+  #   port: 3000
   metrics:
     enabled: false
 runners:

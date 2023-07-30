@@ -46,7 +46,16 @@ public class MainVerticle extends AbstractVerticle {
   private String host2;
   private JsonObject categoryIndexProb1 = loadJsonFile("category_index.json");
   private JsonObject categoryIndexProb2 = loadJsonFile("category_index.json");
-  List<String> orderFeatureName;
+  private List<String> orderFeatureName;
+  
+  // #['Denial of Service' 'Exploits' 'Information Gathering' 'Malware' 'Normal', 'Other']
+  private JsonObject labelMapping = new JsonObject()
+    .put("0", "Denial of Service")
+    .put("1", "Exploits")
+    .put("2", "Information Gathering")
+    .put("3", "Malware")
+    .put("4", "Normal")
+    .put("5", "Other");
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -74,9 +83,9 @@ public class MainVerticle extends AbstractVerticle {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
     router.post("/phase-2/prob-1/predict")
-        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel1GRPC));
+        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel1REST));
     router.post("/phase-2/prob-2/predict")
-        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel2GRPC));
+        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel2REST));
 
     vertx.createHttpServer()
         .requestHandler(router)
@@ -316,6 +325,63 @@ public class MainVerticle extends AbstractVerticle {
         }, executors);
   }
 
+  private ListenableFuture<List<List<Float>>> callModelGRPC2ReturnRaw(String apiName, JsonArray rows) {
+    ListenableFuture<List<Integer>> future1 = prepareShape(rows);
+    ListenableFuture<List<Float>> future2 = prepareArray(rows);
+    ListenableFuture<NDArray> future4 = Futures.transformAsync(
+        Futures.allAsList(future1, future2),
+        input -> {
+          List<Integer> shapeIterable = (List<Integer>) input.get(0);
+          List<Float> arrayIterable = (List<Float>) input.get(1);
+          return bentoServiceClient2.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
+        }, executors);
+    return Futures.transform(
+        future4,
+        ndarray -> {
+          return ndarray.getFloatValuesList()
+              .stream()
+              .map(value -> {
+                List<Float> row = new ArrayList<Float>();
+                row.add(value);
+                return row;
+              })
+              .collect(Collectors.toCollection(ArrayList::new));
+        }, executors);
+  }
+
+  private ListenableFuture<List<Float>> postProcessLightGBM(List<Long> predictions) {
+    List<Float> newPredictions = new ArrayList<Float>();
+    // 1 If the probability of the first class is greater than 0.5, then the
+    // prediction is 0
+    for (int i = 0; i < predictions.size(); i++) {
+      if (predictions.get(i) > 0.5) {
+        newPredictions.add(0.0f);
+      } else {
+        newPredictions.add(1.0f);
+      }
+    }
+    return Futures.immediateFuture(newPredictions);
+  }
+
+  private ListenableFuture<List<String>> postProcessLabelLightGBM(List<List<Float>> predictions) {
+    List<String> newPredictions = new ArrayList<String>();
+    // Argmax then label mapping
+    for (int i = 0; i < predictions.size(); i++) {
+      List<Float> prediction = predictions.get(i);
+      Float max = prediction.get(0);
+      Integer maxIndex = 0;
+      for (int j = 1; j < prediction.size(); j++) {
+        if (prediction.get(j) > max) {
+          max = prediction.get(j);
+          maxIndex = j;
+        }
+      }
+      newPredictions.add(this.labelMapping.getString(maxIndex.toString(), "Other"));
+    }
+    return Futures.immediateFuture(newPredictions);
+  }
+
+
   private void handleModel1GRPC(RoutingContext routingContext) {
     JsonObject input = routingContext.body().asJsonObject();
     // System.out.println("loaded json: " + categoryIndexProb2);
@@ -336,7 +402,7 @@ public class MainVerticle extends AbstractVerticle {
             predictions -> {
               JsonObject response = new JsonObject()
                   .put("id", input.getString("id", ""))
-                  .put("predictions", predictions)
+                  .put("predictions", postProcessLightGBM(predictions))
                   .put("drift", 0);
               return response;
             }, executors),

@@ -24,6 +24,7 @@ WORKDIR /app
 COPY ./backend/target/gateway-1.0.0-SNAPSHOT-fat.jar ./gateway-1.0.0-SNAPSHOT-fat.jar
 
 COPY ./backend/conf_prod.json ./conf_prod.json
+COPY ./backend/category_index.json ./category_index.json
 
 # Expose the port if necessary
 EXPOSE 5040
