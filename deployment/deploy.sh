@@ -54,8 +54,8 @@ build_service_predictor() {
     cd src
     bentoml build 
     bentoml containerize cancer_clf:latest --opt platform=linux/amd64
-    docker tag cancer_clf:latest hieungo1898/bento-service:latest #auto tag
-    docker push hieungo1898/bento-service:latest
+    docker tag model:5cbybmrn4oep2exp hieungo1898/bento-serviceall:latest #auto tag
+    docker push hieungo1898/bento-serviceall:latest
     
     # Back end service
     docker build  --platform linux/amd64 -f deployment/service_predictor/Dockerfile -t service_predictor .

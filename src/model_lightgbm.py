@@ -10,6 +10,7 @@ import joblib
 import random
 import bentoml
 import mlflow
+import functools
 random.seed(42)
 
 
@@ -54,13 +55,23 @@ def fit_preprocessor(path, X, numeric_encoder, standard_scaler, numeric_columns,
 
 def preprocess(X, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index):
     X = apply_category_features(X, category_columns, category_index)
-    X[numeric_columns] = numeric_encoder.transform(X[numeric_columns])
-    X = standard_scaler.transform(X)
+    #X[numeric_columns] = numeric_encoder.transform(X[numeric_columns])
+    #X = standard_scaler.transform(X)
+    return X
+
+async def a_preprocess(X, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index):
+    X = apply_category_features(X, category_columns, category_index)
+    X[numeric_columns] = await numeric_encoder.transform(X[numeric_columns])
+    X = await standard_scaler.transform(X)
     return X
 
 def save_preprocessor(path, category_index, numeric_encoder, standard_scaler):
     with open(path + "category_index.pkl", "wb") as f:
         pickle.dump(category_index, f)
+    # turn category_index to dict and save a json
+    category_index_json = {k: {v: i for i, v in enumerate(category_index[k])} for k in category_index}
+    with open(path + "category_index.json", "w") as f:
+        json.dump(category_index_json, f)
     joblib.dump(numeric_encoder, path + 'numeric_encoder.pkl')
     joblib.dump(standard_scaler, path + 'standard_scaler.pkl')
 
@@ -114,9 +125,9 @@ def train(train_path, config_path):
             model.fit(X, Y)
             score = accuracy_score(Y_test, model.predict(X_test))
             model_uri = mlflow.get_artifact_uri("model")
-            # bento_model = bentoml.mlflow.import_model(
-            #     "model2", model_uri
-            # )
+            bento_model = bentoml.mlflow.import_model(
+                "model2", model_uri
+            )
             print("Model classes", model.classes_)
             print("Model imported to BentoML: %s" % bento_model)
     print(score)

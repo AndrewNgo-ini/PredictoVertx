@@ -48,7 +48,7 @@ public class BentoServiceClient {
         this.stub = BentoServiceGrpc.newFutureStub(channel);
     }
     
-    public ListenableFuture<NDArray> getPrediction(String apiName, List<Integer> shapeIterable, List<Float> arrayIterable) {
+    public ListenableFuture<NDArray> getNDArrayPredictionFromNdArray(String apiName, List<Integer> shapeIterable, List<Float> arrayIterable) {
         // Access a service running on the local machine on port 50051
         NDArray.Builder builder = NDArray.newBuilder()
                 .addAllShape(shapeIterable)
@@ -60,6 +60,21 @@ public class BentoServiceClient {
         return Futures.transform(
                 stub.call(req),
                 response -> response.getNdarray(),
+                executors);
+    }
+
+    public ListenableFuture<Value> getJsonPredictionFromNdArray(String apiName, List<Integer> shapeIterable, List<Float> arrayIterable) {
+        // Access a service running on the local machine on port 50051
+        NDArray.Builder builder = NDArray.newBuilder()
+                .addAllShape(shapeIterable)
+                .addAllFloatValues(arrayIterable)
+                .setDtype(NDArray.DType.DTYPE_FLOAT);
+
+        Request req = Request.newBuilder().setApiName(apiName).setNdarray(builder).build();
+        
+        return Futures.transform(
+                stub.call(req),
+                response -> response.getJson(),
                 executors);
     }
 

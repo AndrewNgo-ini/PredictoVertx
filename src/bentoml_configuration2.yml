@@ -9,3 +9,5 @@ api_server:
 runners:
   batching:
     enabled: false
+    # max_batch_size: 1000
+    # max_latency_ms: 200

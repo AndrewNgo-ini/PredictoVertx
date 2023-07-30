@@ -71,7 +71,7 @@ class APILoadTestUser(HttpUser):
         data = generate_random_data()
 
         # Send the batch request
-        with self.client.post(test_endpoint, json=data, catch_response=True) as response:
+        with self.client.post(endpoint_url2, json=data, catch_response=True) as response:
             if response.status_code == 200:
                 response.success()
             else:

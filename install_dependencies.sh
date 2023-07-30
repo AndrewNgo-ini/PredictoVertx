@@ -2,10 +2,10 @@
 
 # Install Anaconda
 echo "Installing Anaconda..."
-ANACONDA_INSTALLER="Anaconda3-latest-Linux-x86_64.sh"
+ANACONDA_INSTALLER="Anaconda3-2023.07-1-Linux-x86_64.sh"
 ANACONDA_URL="https://repo.anaconda.com/archive/$ANACONDA_INSTALLER"
 
-wget "https://repo.anaconda.com/archive/Anaconda3-2023.07-1-Linux-x86_64.sh" -O /tmp/"$ANACONDA_INSTALLER"
+wget "$ANACONDA_URL" -O /tmp/"$ANACONDA_INSTALLER"
 chmod +x /tmp/"$ANACONDA_INSTALLER"
 sudo bash /tmp/"$ANACONDA_INSTALLER" -b -p /opt/anaconda3
 

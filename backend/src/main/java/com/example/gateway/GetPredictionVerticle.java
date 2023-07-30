@@ -102,7 +102,7 @@ public class GetPredictionVerticle extends AbstractVerticle {
                 input -> {
                     List<Integer> shapeIterable = (List<Integer>) input.get(0);
                     List<Float> arrayIterable = (List<Float>) input.get(1);
-                    return bentoServiceClient.getPrediction(apiName, shapeIterable, arrayIterable);
+                    return bentoServiceClient.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
                 }, executors);
         return Futures.transform(
                 future4,
@@ -119,7 +119,7 @@ public class GetPredictionVerticle extends AbstractVerticle {
                 input -> {
                     List<Integer> shapeIterable = (List<Integer>) input.get(0);
                     List<Float> arrayIterable = (List<Float>) input.get(1);
-                    return bentoServiceClient2.getPrediction(apiName, shapeIterable, arrayIterable);
+                    return bentoServiceClient2.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
                 }, executors);
         return Futures.transform(
                 future4,
