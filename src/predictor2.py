@@ -43,9 +43,9 @@ async def inference2(data: np.array):
         #print("Start", start)
         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
         #raw_df[["feature2", "feature3", "feature4"]] = raw_df[["feature2", "feature3", "feature4"]].astype(np.int32)
-        #order_df = raw_df[columns_order]
+        order_df = raw_df[columns_order]
         #print(order_df.dtypes)
-        processed_data = preprocess(raw_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
+        processed_data = preprocess(order_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
         #print("Preprocess", time.time() - start)
         result = await runner.async_run(processed_data)
         #print("Finish", time.time() - start)

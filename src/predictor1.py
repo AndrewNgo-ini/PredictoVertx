@@ -32,14 +32,14 @@ svc = bentoml.Service("service1", runners=[runner])
 
 
 @svc.api(input=JSON(), 
-        output=NumpyNdarray(),
+        output=JSON(),
         route="/phase-2/prob-1/predict")
 async def inference(data: dict):
     try:
         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
         # raw_df[["feature2", "feature3", "feature4"]] = raw_df[["feature2", "feature3", "feature4"]].astype(np.int32)
-        #order_df = raw_df[columns_order]
-        processed_data = preprocess(raw_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
+        order_df = raw_df[columns_order]
+        processed_data = preprocess(order_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
         result = await runner.async_run(processed_data)
         #print(result)
         return result
