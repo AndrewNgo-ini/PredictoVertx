@@ -55,8 +55,8 @@ def fit_preprocessor(path, X, numeric_encoder, standard_scaler, numeric_columns,
 
 def preprocess(X, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index):
     X = apply_category_features(X, category_columns, category_index)
-    #X[numeric_columns] = numeric_encoder.transform(X[numeric_columns])
-    #X = standard_scaler.transform(X)
+    X[numeric_columns] = numeric_encoder.transform(X[numeric_columns])
+    X = standard_scaler.transform(X)
     return X
 
 async def a_preprocess(X, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index):

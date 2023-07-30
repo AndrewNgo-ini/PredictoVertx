@@ -39,7 +39,7 @@ public class MainVerticle extends AbstractVerticle {
 
   private BentoServiceClient bentoServiceClient = new BentoServiceClient();
   private BentoServiceClient bentoServiceClient2 = new BentoServiceClient();
-  private ExecutorService executors = Executors.newFixedThreadPool(4);
+  private ExecutorService executors = Executors.newCachedThreadPool();
   private static final Logger logger = Logger.getLogger(MainVerticle.class.getName());
   private WebClient webClient;
   private String host1;
@@ -517,7 +517,7 @@ public class MainVerticle extends AbstractVerticle {
               JsonObject response = new JsonObject()
                   .put("id", input.getString("id", ""))
                   .put("predictions", predictions)
-                  .put("drift", 0);
+                  .put("drift", 1);
               return response;
             }, executors),
         new FutureCallback<JsonObject>() {
@@ -550,7 +550,7 @@ public class MainVerticle extends AbstractVerticle {
               JsonObject response = new JsonObject()
                   .put("id", input.getString("id", ""))
                   .put("predictions", predictions)
-                  .put("drift", 0);
+                  .put("drift", 1);
               return response;
             }, executors),
         new FutureCallback<JsonObject>() {
