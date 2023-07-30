@@ -24,6 +24,8 @@ columns_order = [
     "feature41"
   ]
 
+#['Denial of Service' 'Exploits' 'Information Gathering' 'Malware' 'Normal'
+ #'Other']
 
 runner = bentoml.mlflow.get("model2:latest").to_runner()
 
@@ -31,7 +33,7 @@ svc = bentoml.Service("service2", runners=[runner])
 
 
 @svc.api(input=JSON(), 
-        output=NumpyNdarray(),
+        output=JSON(),
         route="/phase-2/prob-2/predict")
 def inference2(data: dict):
     try:

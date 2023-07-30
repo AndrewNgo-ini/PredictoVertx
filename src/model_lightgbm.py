@@ -114,9 +114,10 @@ def train(train_path, config_path):
             model.fit(X, Y)
             score = accuracy_score(Y_test, model.predict(X_test))
             model_uri = mlflow.get_artifact_uri("model")
-            bento_model = bentoml.mlflow.import_model(
-                "model2", model_uri
-            )
+            # bento_model = bentoml.mlflow.import_model(
+            #     "model2", model_uri
+            # )
+            print("Model classes", model.classes_)
             print("Model imported to BentoML: %s" % bento_model)
     print(score)
 

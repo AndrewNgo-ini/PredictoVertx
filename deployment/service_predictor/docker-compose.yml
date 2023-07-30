@@ -10,19 +10,19 @@ services:
     networks:
       - my_network
   predictor:
-    image: service1:2ygshoroc2o5uexp
+    image: service1:2ymxo5bop2y4yexp
     environment:
       - BENTOML_CONFIG=./src/bentoml_configuration.yml
-    command: serve
+    command: serve-grpc
     ports:
       - 3000:3000
     networks:
       - my_network
   predictor2:
-    image: model2:7frifaroc6fjmexp
+    image: service2:ogjivjrop6hmaexp
     environment:
       - BENTOML_CONFIG=./src/bentoml_configuration2.yml
-    command: serve
+    command: serve-grpc
     ports:
       - 3100:3100
     networks:

@@ -45,18 +45,18 @@ def inference(data: dict):
         print(e)
 
 
-@svc.api(input=JSON(), 
-        output=NumpyNdarray(),
-        route="/phase-2/prob-2/predict")
-def inference2(data: dict):
-    try:
-        raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
-        order_df = raw_df[columns_order]
-        processed_data = preprocess(order_df, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2, category_index2)
-        result = runner2.run(processed_data)
-        return result
-    except Exception as e:
-        print(e)
+# @svc.api(input=JSON(), 
+#         output=NumpyNdarray(),
+#         route="/phase-2/prob-2/predict")
+# def inference2(data: dict):
+#     try:
+#         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
+#         order_df = raw_df[columns_order]
+#         processed_data = preprocess(order_df, numeric_encoder2, standard_scaler2, numeric_columns2, category_columns2, category_index2)
+#         result = runner2.run(processed_data)
+#         return result
+#     except Exception as e:
+#         print(e)
 
 
 

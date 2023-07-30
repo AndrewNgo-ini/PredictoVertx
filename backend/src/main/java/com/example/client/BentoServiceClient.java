@@ -20,6 +20,8 @@ import com.bentoml.grpc.v1.Response;
 import io.vertx.core.json.JsonArray;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.protobuf.Value;
+import com.google.protobuf.util.JsonFormat;
 
 // make this class a client for MainVerticle to use
 public class BentoServiceClient {
@@ -58,6 +60,46 @@ public class BentoServiceClient {
         return Futures.transform(
                 stub.call(req),
                 response -> response.getNdarray(),
+                executors);
+    }
+
+    public ListenableFuture<NDArray> getPredictionGRPC(String apiName, String jsonObj) {
+        // Access a service running on the local machine on port 50051
+
+        // System.out.println("jsonObj: " + jsonObj);
+        Value.Builder valBuilder = Value.newBuilder();
+        try {
+            JsonFormat.parser().merge(jsonObj, valBuilder);
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
+        // System.out.println("valBuilder: " + valBuilder.build());
+
+        Request req = Request.newBuilder().setApiName(apiName).setJson(valBuilder.build()).build();
+        
+        return Futures.transform(
+                stub.call(req),
+                response -> response.getNdarray(),
+                executors);
+    }
+
+    public ListenableFuture<Value> getPredictionJSON(String apiName, String jsonObj) {
+        // Access a service running on the local machine on port 50051
+
+        // System.out.println("jsonObj: " + jsonObj);
+        Value.Builder valBuilder = Value.newBuilder();
+        try {
+            JsonFormat.parser().merge(jsonObj, valBuilder);
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
+        // System.out.println("valBuilder: " + valBuilder.build());
+
+        Request req = Request.newBuilder().setApiName(apiName).setJson(valBuilder.build()).build();
+        
+        return Futures.transform(
+                stub.call(req),
+                response -> response.getJson(),
                 executors);
     }
 }
