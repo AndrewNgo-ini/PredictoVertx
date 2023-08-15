@@ -106,7 +106,7 @@ public class TestMainVerticle {
     System.out.println("input: " + input);
 
     // Connect to the Flight server
-    try (FlightClient client = FlightClient.builder(allocator, Location.forGrpcInsecure("0.0.0.0", 5050)).build()) {
+    try (FlightClient client = FlightClient.builder(allocator, Location.forGrpcInsecure("0.0.0.0", 3000)).build()) {
 
       FlightDescriptor descriptor = FlightDescriptor.command("do_exchange".getBytes(StandardCharsets.UTF_8));
 

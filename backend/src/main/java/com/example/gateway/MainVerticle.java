@@ -48,7 +48,7 @@ public class MainVerticle extends AbstractVerticle {
   private JsonObject categoryIndexProb1 = loadJsonFile("category_index.json");
   private JsonObject categoryIndexProb2 = loadJsonFile("category_index.json");
   private List<String> orderFeatureName;
-  private AdhocFlightClient adhocFlightClient = new AdhocFlightClient("0.0.0.0", 5050);
+  private AdhocFlightClient adhocFlightClient;
   
   // #['Denial of Service' 'Exploits' 'Information Gathering' 'Malware' 'Normal', 'Other']
   private JsonObject labelMapping = new JsonObject()
@@ -67,8 +67,8 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     JsonObject config = config();
-    String host1 = config.getString("host1");
-    String host2 = config.getString("host2");
+    String host1 = config.getString("host1", "localhost");
+    String host2 = config.getString("host2", "localhost");
     this.host1 = host1;
     this.host2 = host2;
     System.out.println("config: " + config);
@@ -81,6 +81,7 @@ public class MainVerticle extends AbstractVerticle {
     // bentoServiceClient.init(this.host1, 3000);
     // bentoServiceClient2.init(this.host2, 3100);
     webClient = WebClient.create(vertx);
+    adhocFlightClient = new AdhocFlightClient(host1, 3000);
     //adhocFlightClient.init();
 
     Router router = Router.router(vertx);

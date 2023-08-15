@@ -5,11 +5,11 @@ import pandas as pd
 from catboost import CatBoostClassifier
 
 class FlightServer(pa.flight.FlightServerBase):
-    def __init__(self, location="grpc://0.0.0.0:5050", **kwargs):
+    def __init__(self, model_path, location="grpc://0.0.0.0:5050", **kwargs):
         super(FlightServer, self).__init__(location, **kwargs)
         self._location = location
         self.model = CatBoostClassifier()
-        self.model.load_model("/Users/ngohieu/MLOps/data/raw_data/phase-2/prob-1/model.cbm")
+        self.model.load_model(model_path)
 
     def list_actions(self, context):
         return [flight.ActionType("health_check", "Check the system's health")]
@@ -54,11 +54,13 @@ class FlightServer(pa.flight.FlightServerBase):
         # Return the predictions equal to length of the incoming data
         return pa.array(predictions)
 
-def serve():
-    location = "grpc://0.0.0.0:5050"
-    server = FlightServer(location)
+def serve(model_path):
+    location = "grpc://0.0.0.0:3000"
+    server = FlightServer(model_path, location)
     print("Server is running on:", location)
     server.serve()
 
 if __name__ == "__main__":
-    serve()
+    import sys
+    model_path = sys.argv[1]
+    serve(model_path)
