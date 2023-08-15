@@ -108,14 +108,15 @@ def train(train_path, config_path):
             model = LGBMClassifier(is_unbalance = True)
             model.fit(X, Y)
             score = roc_auc_score(Y_test, model.predict_proba(X_test)[:,1])
+            model.booster_.save_model("model1.txt")
             #print("test", model.predict(X_test))
             #print("test2", model.predict_proba(X_test))
-            model_uri = mlflow.get_artifact_uri("model")
-            bento_model = bentoml.mlflow.import_model(
-                "model1", model_uri
-            )
+            #model_uri = mlflow.get_artifact_uri("model")
+            #bento_model = bentoml.mlflow.import_model(
+            #    "model1", model_uri
+            #)
             #bento_model = bentoml.lightgbm.save_model("model1", model)
-            print("Model imported to BentoML: %s" % bento_model)
+            #print("Model imported to BentoML: %s" % bento_model)
         elif model_config["ml_type"] == "multiclass":
             model = LGBMClassifier(objective='multiclass', 
                                     n_estimators=1000, 
@@ -141,9 +142,9 @@ if __name__ == "__main__":
     config_path = "../src/model_config/phase-2/prob-1/"
     train(train_path, config_path)
 
-    train_path = "../data/raw_data/phase-2/prob-2/raw_train.parquet"
-    config_path = "../src/model_config/phase-2/prob-2/"
-    train(train_path, config_path)
+    # train_path = "../data/raw_data/phase-2/prob-2/raw_train.parquet"
+    # config_path = "../src/model_config/phase-2/prob-2/"
+    # train(train_path, config_path)
 
     # df = pd.read_parquet(train_path)
 

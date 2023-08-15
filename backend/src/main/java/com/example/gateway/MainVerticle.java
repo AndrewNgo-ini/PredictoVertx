@@ -23,22 +23,23 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.bentoml.grpc.v1.NDArray;
-import com.example.client.BentoServiceClient;
+// import com.bentoml.grpc.v1.NDArray;
+import com.example.client.AdhocFlightClient;
+// import com.example.client.BentoServiceClient;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.protobuf.util.JsonFormat;
+// import com.google.gson.Gson;
+// import com.google.gson.GsonBuilder;
+// import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.Value;
 import java.nio.file.Files;
 import com.google.common.util.concurrent.FutureCallback;
 
 public class MainVerticle extends AbstractVerticle {
 
-  private BentoServiceClient bentoServiceClient = new BentoServiceClient();
-  private BentoServiceClient bentoServiceClient2 = new BentoServiceClient();
+  // private BentoServiceClient bentoServiceClient = new BentoServiceClient();
+  // private BentoServiceClient bentoServiceClient2 = new BentoServiceClient();
   private ExecutorService executors = Executors.newCachedThreadPool();
   private static final Logger logger = Logger.getLogger(MainVerticle.class.getName());
   private WebClient webClient;
@@ -47,6 +48,7 @@ public class MainVerticle extends AbstractVerticle {
   private JsonObject categoryIndexProb1 = loadJsonFile("category_index.json");
   private JsonObject categoryIndexProb2 = loadJsonFile("category_index.json");
   private List<String> orderFeatureName;
+  private AdhocFlightClient adhocFlightClient = new AdhocFlightClient("0.0.0.0", 5050);
   
   // #['Denial of Service' 'Exploits' 'Information Gathering' 'Malware' 'Normal', 'Other']
   private JsonObject labelMapping = new JsonObject()
@@ -73,19 +75,22 @@ public class MainVerticle extends AbstractVerticle {
     System.out.println("host1: " + host1);
     System.out.println("host2: " + host2);
     // vertx.deployVerticle(new GetPredictionVerticle(),
-    // new DeploymentOptions()
-    // .setWorker(true)
-    // .setConfig(config));
-    bentoServiceClient.init(this.host1, 3000);
-    bentoServiceClient2.init(this.host2, 3100);
+    //         new DeploymentOptions()
+    //         .setWorker(true)
+    //         .setConfig(config));
+    // bentoServiceClient.init(this.host1, 3000);
+    // bentoServiceClient2.init(this.host2, 3100);
     webClient = WebClient.create(vertx);
+    //adhocFlightClient.init();
 
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
     router.post("/phase-2/prob-1/predict")
-        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel1REST));
+        .handler(routingContext -> submitTaskToPool(routingContext, this::handleTestFlight));
     router.post("/phase-2/prob-2/predict")
-        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel2REST));
+        .handler(routingContext -> submitTaskToPool(routingContext, this::handleModel2));
+    // router.post("/test_flight")
+    //     .handler(routingContext -> submitTaskToPool(routingContext, this::handleTestFlight));
 
     vertx.createHttpServer()
         .requestHandler(router)
@@ -100,6 +105,8 @@ public class MainVerticle extends AbstractVerticle {
   }
 
   // WORKER VERTICLE
+
+
 
   public void handleModel1(RoutingContext routingContext) {
     vertx.eventBus().request("get.prediction", routingContext.body().asJsonObject(), reply -> {
@@ -244,28 +251,28 @@ public class MainVerticle extends AbstractVerticle {
     return newRows;
   }
 
-  private ListenableFuture<List<Long>> callModelGRPC1(String apiName, String jsonObj) {
-    return Futures.transform(
-        bentoServiceClient.getPredictionGRPC(apiName, jsonObj),
-        ndarray -> {
-          return ndarray.getInt64ValuesList();
-        }, executors);
-  }
+  // private ListenableFuture<List<Long>> callModelGRPC1(String apiName, String jsonObj) {
+  //   return Futures.transform(
+  //       bentoServiceClient.getPredictionGRPC(apiName, jsonObj),
+  //       ndarray -> {
+  //         return ndarray.getInt64ValuesList();
+  //       }, executors);
+  // }
 
-  private ListenableFuture<List<String>> callModelGRPC2(String apiName, String jsonObj) {
-    return Futures.transform(
-        bentoServiceClient2.getPredictionJSON(apiName, jsonObj),
-        jsobj -> {
-          // ArrayList<String> predictions = new ArrayList<String>();
-          // for (Value v : jsobj.getListValue().getValuesList()) {
-          // predictions.add(v.getStringValue());
-          // }
-          return jsobj.getListValue().getValuesList()
-              .stream()
-              .map(Value::getStringValue)
-              .collect(Collectors.toCollection(ArrayList::new));
-        }, executors);
-  }
+  // private ListenableFuture<List<String>> callModelGRPC2(String apiName, String jsonObj) {
+  //   return Futures.transform(
+  //       bentoServiceClient2.getPredictionJSON(apiName, jsonObj),
+  //       jsobj -> {
+  //         // ArrayList<String> predictions = new ArrayList<String>();
+  //         // for (Value v : jsobj.getListValue().getValuesList()) {
+  //         // predictions.add(v.getStringValue());
+  //         // }
+  //         return jsobj.getListValue().getValuesList()
+  //             .stream()
+  //             .map(Value::getStringValue)
+  //             .collect(Collectors.toCollection(ArrayList::new));
+  //       }, executors);
+  // }
 
   public ListenableFuture<List<Float>> prepareArray(JsonArray jsonArray) {
     List<Float> flattenedList = new ArrayList<>();
@@ -288,66 +295,66 @@ public class MainVerticle extends AbstractVerticle {
     return Futures.immediateFuture(shapeIterable);
   }
 
-  private ListenableFuture<List<Long>> callModelGRPC1(String apiName, JsonArray rows) {
-    ListenableFuture<List<Integer>> future1 = prepareShape(rows);
-    ListenableFuture<List<Float>> future2 = prepareArray(rows);
-    ListenableFuture<NDArray> future4 = Futures.transformAsync(
-        Futures.allAsList(future1, future2),
-        input -> {
-          List<Integer> shapeIterable = (List<Integer>) input.get(0);
-          List<Float> arrayIterable = (List<Float>) input.get(1);
-          return bentoServiceClient.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
-        }, executors);
-    return Futures.transform(
-        future4,
-        ndarray -> {
-          return ndarray.getInt64ValuesList();
-        }, executors);
-  }
+  // private ListenableFuture<List<Long>> callModelGRPC1(String apiName, JsonArray rows) {
+  //   ListenableFuture<List<Integer>> future1 = prepareShape(rows);
+  //   ListenableFuture<List<Float>> future2 = prepareArray(rows);
+  //   ListenableFuture<NDArray> future4 = Futures.transformAsync(
+  //       Futures.allAsList(future1, future2),
+  //       input -> {
+  //         List<Integer> shapeIterable = (List<Integer>) input.get(0);
+  //         List<Float> arrayIterable = (List<Float>) input.get(1);
+  //         return bentoServiceClient.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
+  //       }, executors);
+  //   return Futures.transform(
+  //       future4,
+  //       ndarray -> {
+  //         return ndarray.getInt64ValuesList();
+  //       }, executors);
+  // }
 
-  private ListenableFuture<List<String>> callModelGRPC2(String apiName, JsonArray rows) {
-    ListenableFuture<List<Integer>> future1 = prepareShape(rows);
-    ListenableFuture<List<Float>> future2 = prepareArray(rows);
-    ListenableFuture<Value> future4 = Futures.transformAsync(
-        Futures.allAsList(future1, future2),
-        input -> {
-          List<Integer> shapeIterable = (List<Integer>) input.get(0);
-          List<Float> arrayIterable = (List<Float>) input.get(1);
-          return bentoServiceClient2.getJsonPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
-        }, executors);
-    return Futures.transform(
-        future4,
-        jsobj -> {
-          return jsobj.getListValue().getValuesList()
-              .stream()
-              .map(Value::getStringValue)
-              .collect(Collectors.toCollection(ArrayList::new));
-        }, executors);
-  }
+  // private ListenableFuture<List<String>> callModelGRPC2(String apiName, JsonArray rows) {
+  //   ListenableFuture<List<Integer>> future1 = prepareShape(rows);
+  //   ListenableFuture<List<Float>> future2 = prepareArray(rows);
+  //   ListenableFuture<Value> future4 = Futures.transformAsync(
+  //       Futures.allAsList(future1, future2),
+  //       input -> {
+  //         List<Integer> shapeIterable = (List<Integer>) input.get(0);
+  //         List<Float> arrayIterable = (List<Float>) input.get(1);
+  //         return bentoServiceClient2.getJsonPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
+  //       }, executors);
+  //   return Futures.transform(
+  //       future4,
+  //       jsobj -> {
+  //         return jsobj.getListValue().getValuesList()
+  //             .stream()
+  //             .map(Value::getStringValue)
+  //             .collect(Collectors.toCollection(ArrayList::new));
+  //       }, executors);
+  // }
 
-  private ListenableFuture<List<List<Float>>> callModelGRPC2ReturnRaw(String apiName, JsonArray rows) {
-    ListenableFuture<List<Integer>> future1 = prepareShape(rows);
-    ListenableFuture<List<Float>> future2 = prepareArray(rows);
-    ListenableFuture<NDArray> future4 = Futures.transformAsync(
-        Futures.allAsList(future1, future2),
-        input -> {
-          List<Integer> shapeIterable = (List<Integer>) input.get(0);
-          List<Float> arrayIterable = (List<Float>) input.get(1);
-          return bentoServiceClient2.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
-        }, executors);
-    return Futures.transform(
-        future4,
-        ndarray -> {
-          return ndarray.getFloatValuesList()
-              .stream()
-              .map(value -> {
-                List<Float> row = new ArrayList<Float>();
-                row.add(value);
-                return row;
-              })
-              .collect(Collectors.toCollection(ArrayList::new));
-        }, executors);
-  }
+  // private ListenableFuture<List<List<Float>>> callModelGRPC2ReturnRaw(String apiName, JsonArray rows) {
+  //   ListenableFuture<List<Integer>> future1 = prepareShape(rows);
+  //   ListenableFuture<List<Float>> future2 = prepareArray(rows);
+  //   ListenableFuture<NDArray> future4 = Futures.transformAsync(
+  //       Futures.allAsList(future1, future2),
+  //       input -> {
+  //         List<Integer> shapeIterable = (List<Integer>) input.get(0);
+  //         List<Float> arrayIterable = (List<Float>) input.get(1);
+  //         return bentoServiceClient2.getNDArrayPredictionFromNdArray(apiName, shapeIterable, arrayIterable);
+  //       }, executors);
+  //   return Futures.transform(
+  //       future4,
+  //       ndarray -> {
+  //         return ndarray.getFloatValuesList()
+  //             .stream()
+  //             .map(value -> {
+  //               List<Float> row = new ArrayList<Float>();
+  //               row.add(value);
+  //               return row;
+  //             })
+  //             .collect(Collectors.toCollection(ArrayList::new));
+  //       }, executors);
+  // }
 
   private ListenableFuture<List<Float>> postProcessLightGBM(List<Long> predictions) {
     List<Float> newPredictions = new ArrayList<Float>();
@@ -382,93 +389,93 @@ public class MainVerticle extends AbstractVerticle {
   }
 
 
-  private void handleModel1GRPC(RoutingContext routingContext) {
-    JsonObject input = routingContext.body().asJsonObject();
-    // System.out.println("loaded json: " + categoryIndexProb2);
+  // private void handleModel1GRPC(RoutingContext routingContext) {
+  //   JsonObject input = routingContext.body().asJsonObject();
+  //   // System.out.println("loaded json: " + categoryIndexProb2);
 
-    JsonArray rows = input.getJsonArray("rows");
-    // System.out.println("Before: " + rows);
-    JsonArray columns = input.getJsonArray("columns");
+  //   // JsonArray rows = input.getJsonArray("rows");
+  //   // System.out.println("Before: " + rows);
+  //   // JsonArray columns = input.getJsonArray("columns");
 
-    JsonArray newRows = transformCateJsonArray(rows, columns);
-    input.put("rows", newRows);
-    // input.put("columns", this.orderFeatureName);
-    // System.out.println("After: " + input.getJsonArray("rows"));
+  //   // JsonArray newRows = transformCateJsonArray(rows, columns);
+  //   // input.put("rows", newRows);
+  //   // input.put("columns", this.orderFeatureName);
+  //   // System.out.println("After: " + input.getJsonArray("rows"));
 
 
-    Futures.addCallback(
-        Futures.transform(
-            callModelGRPC1("inference", input.toString()),
-            predictions -> {
-              JsonObject response = new JsonObject()
-                  .put("id", input.getString("id", ""))
-                  .put("predictions", postProcessLightGBM(predictions))
-                  .put("drift", 0);
-              return response;
-            }, executors),
-        new FutureCallback<JsonObject>() {
-          @Override
-          public void onSuccess(JsonObject resp) {
-            System.out.println("success 1");
-            routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(resp.toString());
-          }
+  //   Futures.addCallback(
+  //       Futures.transform(
+  //           callModelGRPC1("inference", input.toString()),
+  //           predictions -> {
+  //             JsonObject response = new JsonObject()
+  //                 .put("id", input.getString("id", ""))
+  //                 .put("predictions", postProcessLightGBM(predictions))
+  //                 .put("drift", 0);
+  //             return response;
+  //           }, executors),
+  //       new FutureCallback<JsonObject>() {
+  //         @Override
+  //         public void onSuccess(JsonObject resp) {
+  //           System.out.println("success 1");
+  //           routingContext.response()
+  //               .putHeader("content-type", "application/json")
+  //               .end(resp.toString());
+  //         }
 
-          @Override
-          public void onFailure(Throwable t) {
-            t.printStackTrace();
-            routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(new JsonObject().put("message", "failed").encodePrettily());
-          }
-        }, executors);
-  }
+  //         @Override
+  //         public void onFailure(Throwable t) {
+  //           t.printStackTrace();
+  //           routingContext.response()
+  //               .putHeader("content-type", "application/json")
+  //               .end(new JsonObject().put("message", "failed").encodePrettily());
+  //         }
+  //       }, executors);
+  // }
 
-  private void handleModel2GRPC(RoutingContext routingContext) {
-    JsonObject input = routingContext.body().asJsonObject();
+  // private void handleModel2GRPC(RoutingContext routingContext) {
+  //   JsonObject input = routingContext.body().asJsonObject();
 
-    // System.out.println("loaded json: " + categoryIndexProb2);
+  //   // System.out.println("loaded json: " + categoryIndexProb2);
 
-    JsonArray rows = input.getJsonArray("rows");
-    // System.out.println("Before: " + rows);
-    JsonArray columns = input.getJsonArray("columns");
+  //   // JsonArray rows = input.getJsonArray("rows");
+  //   // System.out.println("Before: " + rows);
+  //   // JsonArray columns = input.getJsonArray("columns");
 
-    JsonArray newRows = transformCateJsonArray(rows, columns);
-    input.put("rows", newRows);
-    // input.put("columns", this.orderFeatureName);
-    // System.out.println("After: " + input.getJsonArray("rows"));
+  //   // JsonArray newRows = transformCateJsonArray(rows, columns);
+  //   // input.put("rows", newRows);
+  //   // input.put("columns", this.orderFeatureName);
+  //   // System.out.println("After: " + input.getJsonArray("rows"));
 
-    Futures.addCallback(
-        Futures.transform(
-            callModelGRPC2("inference2", input.toString()),
-            // callModelGRPC2("inference2", newRows),
-            predictions -> {
-              // System.out.println("predictions: " + predictions);
-              JsonObject response = new JsonObject()
-                  .put("id", input.getString("id", ""))
-                  .put("predictions", predictions)
-                  .put("drift", 0);
-              return response;
-            }, executors),
-        new FutureCallback<JsonObject>() {
-          @Override
-          public void onSuccess(JsonObject resp) {
-            System.out.println("success 2");
-            routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(resp.toString());
-          }
+  //   Futures.addCallback(
+  //       Futures.transform(
+  //           callModelGRPC2("inference2", input.toString()),
+  //           // callModelGRPC2("inference2", newRows),
+  //           predictions -> {
+  //             // System.out.println("predictions: " + predictions);
+  //             JsonObject response = new JsonObject()
+  //                 .put("id", input.getString("id", ""))
+  //                 .put("predictions", predictions)
+  //                 .put("drift", 0);
+  //             return response;
+  //           }, executors),
+  //       new FutureCallback<JsonObject>() {
+  //         @Override
+  //         public void onSuccess(JsonObject resp) {
+  //           System.out.println("success 2");
+  //           routingContext.response()
+  //               .putHeader("content-type", "application/json")
+  //               .end(resp.toString());
+  //         }
 
-          @Override
-          public void onFailure(Throwable t) {
-            t.printStackTrace();
-            routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(new JsonObject().put("message", "failed").encodePrettily());
-          }
-        }, executors);
-  }
+  //         @Override
+  //         public void onFailure(Throwable t) {
+  //           t.printStackTrace();
+  //           routingContext.response()
+  //               .putHeader("content-type", "application/json")
+  //               .end(new JsonObject().put("message", "failed").encodePrettily());
+  //         }
+  //       }, executors);
+  // }
 
   // -------------------------------- REST --------------------------------
 
@@ -572,6 +579,37 @@ public class MainVerticle extends AbstractVerticle {
         }, executors);
   }
 
+  public void handleTestFlight(RoutingContext routingContext) {
+    JsonObject input = routingContext.body().asJsonObject();
+    Futures.addCallback(
+      Futures.transform(
+          this.adhocFlightClient.doExchange(input),
+          predictions -> {
+            JsonObject response = new JsonObject()
+                .put("id", input.getString("id", ""))
+                .put("predictions", predictions)
+                .put("drift", 1);
+            return response;
+          }, executors),
+      new FutureCallback<JsonObject>() {
+        @Override
+        public void onSuccess(JsonObject resp) {
+          // logger.info("Received response from model 1: " + System.currentTimeMillis());
+          routingContext.response()
+              .putHeader("content-type", "application/json")
+              .end(resp.toString());
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          t.printStackTrace();
+          routingContext.response()
+              .putHeader("content-type", "application/json")
+              .end(new JsonObject().put("message", "failed").encodePrettily());
+        }
+      }, executors);
+    
+  }
 }
 // JsonObject input = routingContext.getBodyAsJson();
 

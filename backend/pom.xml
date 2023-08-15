@@ -16,8 +16,9 @@
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 
-    <vertx.version>4.4.4</vertx.version>
+    <vertx.version>4.4.3</vertx.version>
     <junit-jupiter.version>5.9.1</junit-jupiter.version>
+    <arrow.version>9.0.0</arrow.version>
 
     <main.verticle>com.example.gateway.MainVerticle</main.verticle>
     <launcher.class>io.vertx.core.Launcher</launcher.class>
@@ -38,16 +39,11 @@
   <dependencies>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-mongo-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
-      <version>4.4.4</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
     </dependency>
 
     <dependency>
@@ -67,72 +63,30 @@
       <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- PyArrow -->
     <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty-shaded</artifactId>
-      <version>1.56.0</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-protobuf</artifactId>
-      <version>1.56.0</version>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-vector</artifactId>
+        <version>${arrow.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-      <version>1.56.0</version>
-    </dependency>
-    <dependency> <!-- necessary for Java 9+ -->
-      <groupId>org.apache.tomcat</groupId>
-      <artifactId>annotations-api</artifactId>
-      <version>6.0.53</version>
-      <scope>provided</scope>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>arrow-memory-netty</artifactId>
+        <version>${arrow.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>3.23.0</version>
+        <groupId>org.apache.arrow</groupId>
+        <artifactId>flight-core</artifactId>
+        <version>${arrow.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java-util</artifactId>
-      <version>3.18.1</version>
-    </dependency>
-    <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>31.0.1-jre</version>
-    </dependency>
+
   </dependencies>
+  
+    
 
   <build>
-    <extensions>
-      <extension>
-        <groupId>kr.motd.maven</groupId>
-        <artifactId>os-maven-plugin</artifactId>
-        <version>1.7.1</version>
-      </extension>
-    </extensions>
     <plugins>
-      <plugin>
-      <groupId>org.xolstice.maven.plugins</groupId>
-      <artifactId>protobuf-maven-plugin</artifactId>
-      <version>0.6.1</version>
-      <configuration>
-        <protocArtifact>com.google.protobuf:protoc:3.22.3:exe:${os.detected.classifier}</protocArtifact>
-        <pluginId>grpc-java</pluginId>
-        <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.56.0:exe:${os.detected.classifier}</pluginArtifact>
-      </configuration>
-      <executions>
-        <execution>
-          <goals>
-            <goal>compile</goal>
-            <goal>compile-custom</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
@@ -184,6 +138,4 @@
       </plugin>
     </plugins>
   </build>
-
-
 </project>

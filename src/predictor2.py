@@ -37,19 +37,21 @@ svc = bentoml.Service("service2", runners=[runner])
 @svc.api(input=JSON(), 
         output=JSON(),
         route="/phase-2/prob-2/predict")
-async def inference2(data: np.array):
+def inference2(data: np.array):
     try:
         start = time.time()
-        #print("Start", start)
+        print("Start", start)
         raw_df = pd.DataFrame(data["rows"], columns=data["columns"])
+        print("Convert to df", time.time() - start)
         #raw_df[["feature2", "feature3", "feature4"]] = raw_df[["feature2", "feature3", "feature4"]].astype(np.int32)
         order_df = raw_df[columns_order]
+        print("Order", time.time() - start)
         #print(order_df.dtypes)
         processed_data = preprocess(order_df, numeric_encoder, standard_scaler, numeric_columns, category_columns, category_index)
-        #print("Preprocess", time.time() - start)
-        result = await runner.async_run(processed_data)
-        #print("Finish", time.time() - start)
-        print(result)
+        print("Preprocess", time.time() - start)
+        result = runner.run(processed_data)
+        print("Finish", time.time() - start)
+        #print(result)
         return result
     except Exception as e:
         print(e)
@@ -67,15 +69,17 @@ async def inference2(data: np.array):
 #         print(e)
 
 
+# runner = bentoml.catboost.get("catboost_cancer_clf:latest").to_runner()
+# svc = bentoml.Service("service2", runners=[runner])
+
+
 # @svc.api(input=NumpyNdarray(), 
 #         output=NumpyNdarray(),
 #         route="/phase-2/prob-2/predict")
-# async def inference2(data: np.ndarray) -> dict:
+# def inference2(data: np.ndarray) -> dict:
 #     try:
-#         result = await runner.predict.async_run(data)
-#         #print(result)
+#         result = runner.predict.run(data)
+#         print(result)
 #         return result
 #     except Exception as e:
 #         print(e)
-
-    
