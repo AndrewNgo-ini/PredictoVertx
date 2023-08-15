@@ -36,19 +36,14 @@ run_predictor() {
         docker-compose -f deployment/model_predictor/docker-compose.yml up -d
 }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
 run_service_predictor() {
     #docker build -f deployment/python_service/Dockerfile -t python_service:$IMAGE_TAG .
     docker build -f deployment/service_predictor/Dockerfile -t service_predictor:$IMAGE_TAG .
     IMAGE_NAME=service_predictor IMAGE_TAG=$IMAGE_TAG \
         docker-compose -f deployment/service_predictor/docker-compose.yml up -d
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+}
+
 build_service_predictor() {
     # Bento service
     cd src
@@ -61,13 +56,10 @@ build_service_predictor() {
     docker build  --platform linux/amd64 -f deployment/service_predictor/Dockerfile -t service_predictor .
     docker tag service_predictor:latest hieungo1898/back-end:latest
     docker push hieungo1898/back-end:latest
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
+    # flight service
+    docker build  --platform linux/amd64 -f deployment/flight_service/Dockerfile -t flight_service .
+
 }
 
 shift
