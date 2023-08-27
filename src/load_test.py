@@ -62,8 +62,8 @@ class APILoadTestUser(HttpUser):
     @task
     def send_batch_request(self):
         # You can put your API endpoint URL here
-        endpoint_url1 = "/phase-2/prob-1/predict"
-        endpoint_url2 = "/phase-2/prob-2/predict"
+        endpoint_url1 = "/phase-3/prob-1/predict"
+        endpoint_url2 = "/phase-3/prob-2/predict"
         # random endpoint
         test_endpoint = random.choice([endpoint_url1, endpoint_url2])
 
@@ -71,7 +71,7 @@ class APILoadTestUser(HttpUser):
         data = generate_random_data()
 
         # Send the batch request
-        with self.client.post(endpoint_url2, json=data, catch_response=True) as response:
+        with self.client.post(endpoint_url1, json=data, catch_response=True) as response:
             if response.status_code == 200:
                 response.success()
             else:

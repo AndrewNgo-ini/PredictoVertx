@@ -35,10 +35,10 @@ def train(path):
     metrics = {"test_auc": auc_score}
     logging.info(f"metrics: {metrics}")
 
-    model.save_model(path + "model.cbm")
-    # signature = infer_signature(test_x, predictions)
-    # bento_model = bentoml.catboost.save_model("model", model)
-    # logging.info("finish train_model")
+    #model.save_model(path + "model.cbm")
+    signature = infer_signature(test_x, predictions)
+    bento_model = bentoml.catboost.save_model("catboost1", model)
+    logging.info("finish train_model")
 
 if __name__ == "__main__":
     train("/Users/ngohieu/MLOps/data/raw_data/phase-2/prob-1/")

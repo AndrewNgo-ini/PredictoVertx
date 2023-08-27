@@ -1,153 +1,35 @@
-# MLOps Marathon 2023 - Sample solution
+PredictoVertx
 
-This repository is the sample solution for MLOps Marathon 2023.
+This document provides an overview of the technology stack employed in the project, including backend components, models, and services. The project leverages a variety of tools and frameworks to efficiently handle requests, process data, and deliver results.
 
-## Quickstart
+Backend Gateway
+The Backend Gateway serves as the entry point for incoming requests, responsible for handling and directing them to appropriate services for further processing. It utilizes the following technologies:
 
-1.  Prepare environment
+Vert.x: Vert.x is a versatile, event-driven, and non-blocking toolkit that aids in building reactive applications. In this project, Vert.x is used to manage the asynchronous nature of incoming requests and to ensure optimal resource utilization.
 
-    ```bash
-    # Install python 3.9
-    # Install docker version 20.10.17
-    # Install docker-compose version v2.6.1
-    pip install -r requirements.txt
-    make mlflow_up
-    ```
+Flight RPC: Flight RPC is a framework that enables efficient data exchange between services using gRPC, a high-performance remote procedure call protocol. The Backend Gateway employs Flight RPC to communicate with other services seamlessly.
 
-2.  Train model
+BentoML Client gRPC: BentoML is a platform used for deploying, managing, and serving machine learning models. The BentoML Client gRPC library allows the Backend Gateway to interact with BentoML services and make predictions using deployed machine learning models.
 
-    -   Download data, `./data/raw_data` dir should look like
+Model
+The core of the project's functionality lies in the model, which makes predictions based on the provided data. The model stack comprises the following components:
 
-        ```bash
-        data/raw_data
-        ├── .gitkeep
-        └── phase-1
-            └── prob-1
-                ├── features_config.json
-                └── raw_train.parquet
-        ```
+CatBoost: CatBoost is a powerful gradient boosting library that excels in handling categorical features and achieving high predictive accuracy. In this project, CatBoost is the chosen machine learning algorithm due to its effectiveness in a variety of scenarios.
 
-    -   Process data
+Bento Service: BentoML offers the concept of a Bento Service, which is a containerized environment for packaging and deploying machine learning models. The CatBoost model is transformed into a Bento Service, enabling easy deployment, versioning, and scaling.
 
-        ```bash
-        python src/raw_data_processor.py --phase-id phase-1 --prob-id prob-1
-        ```
+Flight RPC Service: To facilitate communication and interaction with the CatBoost model, a Flight RPC service is implemented. This service allows the model to receive input data and return predictions efficiently using the Flight RPC framework.
 
-    -   After processing data, `./data/train_data` dir should look like
+Overall Workflow
+Incoming requests are received by the Backend Gateway, which uses Vert.x to manage the asynchronous nature of these requests.
 
-        ```bash
-        data/train_data
-        ├── .gitkeep
-        └── phase-1
-            └── prob-1
-                ├── category_index.pickle
-                ├── test_x.parquet
-                ├── test_y.parquet
-                ├── train_x.parquet
-                └── train_y.parquet
-        ```
+The Backend Gateway communicates with the CatBoost model using Flight RPC and the BentoML Client gRPC library.
 
-    -   Train model
+The CatBoost model, deployed as a Bento Service, processes the incoming data and generates predictions.
 
-        ```bash
-        export MLFLOW_TRACKING_URI=http://localhost:5000
-        python src/model_trainer.py --phase-id phase-1 --prob-id prob-1
-        ```
+The predictions are sent back to the Backend Gateway via the Flight RPC service.
 
-    -   Register model: Go to mlflow UI at <http://localhost:5000> and register a new model named **phase-1_prob-1_model-1**
+The Backend Gateway returns the predictions to the requester.
 
-3.  Deploy model predictor
-
-    -   Create model config at `data/model_config/phase-1/prob-1/model-1.yaml` with content:
-
-        ```yaml
-        phase_id: "phase-1"
-        prob_id: "prob-1"
-        model_name: "phase-1_prob-1_model-1"
-        model_version: "1"
-        ```
-
-    -   Test model predictor
-
-        ```bash
-        # run model predictor
-        export MLFLOW_TRACKING_URI=http://localhost:5000
-        python src/model_predictor.py --config-path data/model_config/phase-1/prob-1/model-1.yaml --port 8000
-
-        # curl in another terminal
-        curl -X POST http://localhost:8000/phase-1/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-1/prob-1/payload-1.json
-
-        # stop the predictor above
-        ```
-
-    -   Deploy model predictor
-
-        ```bash
-        make predictor_up
-        make predictor_curl
-        ```
-
-    -   After running `make predictor_curl` to send requests to the server, `./data/captured_data` dir should look like:
-
-        ```bash
-         data/captured_data
-         ├── .gitkeep
-         └── phase-1
-             └── prob-1
-                 ├── 123.parquet
-                 └── 456.parquet
-        ```
-
-4.  Improve model
-
-    -   The technique to improve model by using the prediction data is described in `improve_model.md`.
-    -   Label the captured data, taking around 3 minutes
-
-        ```bash
-        python src/label_captured_data.py --phase-id phase-1 --prob-id prob-1
-        ```
-
-    -   After label the captured data, `./data/captured_data` dir should look like:
-
-        ```bash
-        data/captured_data
-        ├── .gitkeep
-        └── phase-1
-            └── prob-1
-                ├── 123.parquet
-                ├── 456.parquet
-                └── processed
-                    ├── captured_x.parquet
-                    └── uncertain_y.parquet
-        ```
-
-    -   Improve model with updated data
-
-        ```bash
-        export MLFLOW_TRACKING_URI=http://localhost:5000
-        python src/model_trainer.py --phase-id phase-1 --prob-id prob-1 --add-captured-data true
-        ```
-
-    -   Register model: Go to mlflow UI at <http://localhost:5000> and register model using the existing name **phase-1_prob-1_model-1**. The latest model version now should be `2`.
-
-    -   Update model config at `data/model_config/phase-1/prob-1/model-1.yaml` to:
-
-        ```yaml
-        phase_id: "phase-1"
-        prob_id: "prob-1"
-        model_name: "phase-1_prob-1_model-1"
-        model_version: "2"
-        ```
-
-    -   Deploy new model version
-
-        ```bash
-        make predictor_restart
-        make predictor_curl
-        ```
-
-5.  Teardown
-
-    ```bash
-    make teardown
-    ```
+Conclusion
+The project's technology stack combines the power of reactive programming, efficient communication via Flight RPC, the predictive capabilities of CatBoost, and the deployment ease of BentoML. This stack enables the creation of a robust and responsive system capable of handling requests, processing data, and delivering accurate predictions.
